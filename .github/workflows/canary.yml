@@ -531,14 +531,18 @@ jobs:
           # v2 canary packing never uses the v1 RSA keys, so random junk
           # is enough (same approach as the nightly Release builds).
           mkdir -p $TBUILD/DesktopPrivate
+          mkdir -p $TBUILD/$REPO_NAME/Telegram/SourceFiles/_other
           random_key() {
             printf -- '-----BEGIN RSA PRIVATE KEY-----\\n%s\\n-----END RSA PRIVATE KEY-----\\n' \
               "$(head -c 96 /dev/urandom | base64 | tr -d '\n')"
           }
-          printf 'const char *PrivateKey = "%s";\nconst char *PrivateBetaKey = "%s";\n' \
-            "$(random_key)" "$(random_key)" > $TBUILD/DesktopPrivate/packer_private.h
+          KEY1="$(random_key)"
+          KEY2="$(random_key)"
+          KEY3="$(random_key)"
+          printf 'const char *PrivateKey = "%s";\nconst char *PrivateBetaKey = "%s";\nstatic const char *AlphaPrivateKey = "%s";\n' \
+            "$KEY1" "$KEY2" "$KEY3" | tee $TBUILD/DesktopPrivate/packer_private.h > $TBUILD/$REPO_NAME/Telegram/SourceFiles/_other/packer_private.h
           printf 'static const char *AlphaPrivateKey = "%s";\n' \
-            "$(random_key)" > $TBUILD/DesktopPrivate/alpha_private.h
+            "$KEY3" | tee $TBUILD/DesktopPrivate/alpha_private.h > $TBUILD/$REPO_NAME/Telegram/SourceFiles/_other/alpha_private.h
 
       - name: Free up some disk space.
         shell: bash
