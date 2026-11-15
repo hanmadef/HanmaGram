@@ -1,4 +1,4 @@
-﻿# Canary channel: single Release+LTO build per platform (Windows x64,
+# Canary channel: single Release+LTO build per platform (Windows x64,
 # universal macOS, Linux x64 through docker), signed, packed as v2
 # updates and published via a local Bot API server.
 #
@@ -105,6 +105,19 @@ name: Canary.
 
 on:
   workflow_dispatch:
+    inputs:
+      build_windows:
+        description: 'Build Windows x64'
+        type: boolean
+        default: true
+      build_linux:
+        description: 'Build Linux x64'
+        type: boolean
+        default: false
+      build_macos:
+        description: 'Build macOS'
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -283,6 +296,7 @@ jobs:
     name: Windows x64 (${{ needs.version.outputs.channel }})
     runs-on: windows-latest
     needs: version
+    if: github.event_name != 'workflow_dispatch' || inputs.build_windows != false
 
     permissions:
       contents: read
@@ -707,6 +721,7 @@ jobs:
     name: macOS ${{ matrix.arch }} (${{ needs.version.outputs.channel }})
     runs-on: macos-14
     needs: version
+    if: inputs.build_macos == true
 
     permissions:
       contents: read
@@ -876,6 +891,7 @@ jobs:
     name: macOS universal (${{ needs.version.outputs.channel }})
     runs-on: macos-14
     needs: [version, macos-build]
+    if: inputs.build_macos == true
 
     permissions:
       contents: read
@@ -1102,6 +1118,7 @@ jobs:
     name: Linux x64 (${{ needs.version.outputs.channel }})
     runs-on: ubuntu-latest
     needs: version
+    if: inputs.build_linux == true
 
     permissions:
       contents: read
