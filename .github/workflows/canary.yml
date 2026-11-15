@@ -359,30 +359,11 @@ jobs:
         shell: bash
         run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
-      - name: Git auth through the TBuild symlink.
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          # actions/checkout persists its auth header in the repository's
-          # local git config, which does not take effect for a checkout
-          # path that goes through the TBuild directory symlink: on the
-          # public repository the fetch needs no credentials, on the
-          # private one it fails with "could not read Username". The same
-          # header passed through the environment applies to every git
-          # call of the checkout step regardless of the path.
-          BASIC=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)
-          echo "::add-mask::$BASIC"
-          echo "GIT_AUTH_HEADER=AUTHORIZATION: basic $BASIC" >> $GITHUB_ENV
-
       - name: Clone.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        env:
-          GIT_CONFIG_COUNT: 1
-          GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
-          GIT_CONFIG_VALUE_0: ${{ env.GIT_AUTH_HEADER }}
         with:
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Submodules.
         shell: bash
