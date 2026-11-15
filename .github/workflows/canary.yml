@@ -368,7 +368,10 @@ jobs:
           # runners, out of these jobs; the other nested submodules are
           # documentation (range-v3 gh-pages, libcbor doxygen-theme).
           cd $TBUILD/$REPO_NAME
-          git submodule update --init --depth=1
+          git submodule update --init --depth=1 || git submodule update --init
+          if [ ! -f "cmake/run_cmake.py" ]; then
+            git clone --depth=1 https://github.com/desktop-app/cmake_helpers.git cmake
+          fi
 
       - name: Read canary configuration.
         shell: bash
