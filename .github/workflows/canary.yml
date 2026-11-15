@@ -317,16 +317,16 @@ jobs:
         shell: cmd
 
     steps:
-      - name: Prepare directories on D drive.
+      - name: Prepare directories.
         run: |
-          if not exist D:\TBuild\Libraries mkdir D:\TBuild\Libraries
-          if not exist D:\TBuild\temp mkdir D:\TBuild\temp
-          if not exist %userprofile%\TBuild mklink /d %userprofile%\TBuild D:\TBuild
-          if not exist %GITHUB_WORKSPACE%\TBuild mklink /d %GITHUB_WORKSPACE%\TBuild D:\TBuild
-          echo TBUILD=D:\TBuild>>%GITHUB_ENV%
-          echo LibrariesPath=D:\TBuild\Libraries\win64>>%GITHUB_ENV%
-          echo TEMP=D:\TBuild\temp>>%GITHUB_ENV%
-          echo TMP=D:\TBuild\temp>>%GITHUB_ENV%
+          mkdir %GITHUB_WORKSPACE%\TBuild\Libraries
+          mkdir %GITHUB_WORKSPACE%\TBuild\temp
+          if exist %userprofile%\TBuild rmdir %userprofile%\TBuild
+          mklink /d %userprofile%\TBuild %GITHUB_WORKSPACE%\TBuild
+          echo TBUILD=%GITHUB_WORKSPACE%\TBuild>>%GITHUB_ENV%
+          echo LibrariesPath=%GITHUB_WORKSPACE%\TBuild\Libraries\win64>>%GITHUB_ENV%
+          echo TEMP=%GITHUB_WORKSPACE%\TBuild\temp>>%GITHUB_ENV%
+          echo TMP=%GITHUB_WORKSPACE%\TBuild\temp>>%GITHUB_ENV%
 
       - name: Free up disk space on runner.
         shell: pwsh
