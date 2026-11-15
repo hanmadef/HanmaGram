@@ -317,12 +317,16 @@ jobs:
         shell: cmd
 
     steps:
-      - name: Prepare directories.
+      - name: Prepare directories on D drive.
         run: |
-          mkdir %userprofile%\TBuild\Libraries
-          mklink /d %GITHUB_WORKSPACE%\TBuild %userprofile%\TBuild
-          echo TBUILD=%GITHUB_WORKSPACE%\TBuild>>%GITHUB_ENV%
-          echo LibrariesPath=%GITHUB_WORKSPACE%\TBuild\Libraries\win64>>%GITHUB_ENV%
+          if not exist D:\TBuild\Libraries mkdir D:\TBuild\Libraries
+          if not exist D:\TBuild\temp mkdir D:\TBuild\temp
+          if not exist %userprofile%\TBuild mklink /d %userprofile%\TBuild D:\TBuild
+          if not exist %GITHUB_WORKSPACE%\TBuild mklink /d %GITHUB_WORKSPACE%\TBuild D:\TBuild
+          echo TBUILD=D:\TBuild>>%GITHUB_ENV%
+          echo LibrariesPath=D:\TBuild\Libraries\win64>>%GITHUB_ENV%
+          echo TEMP=D:\TBuild\temp>>%GITHUB_ENV%
+          echo TMP=D:\TBuild\temp>>%GITHUB_ENV%
 
       - name: Free up disk space on runner.
         shell: pwsh
@@ -629,6 +633,7 @@ jobs:
           cmake --build ..\out --config Release --parallel
 
       - name: Dump debug symbols.
+        continue-on-error: true
         shell: bash
         run: |
           # Pre-strip (PDBs are separate on Windows anyway): breakpad
@@ -752,6 +757,15 @@ jobs:
         with:
           name: canary-win64-portable
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}\out\Release\artifact\portable\
+          retention-days: 7
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        name: Upload HanmaGram.exe directly.
+        if: always()
+        continue-on-error: true
+        with:
+          name: HanmaGram-exe-direct
+          path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}\out\Release\Telegram.exe
           retention-days: 7
 
   # Two single-arch builds, lipo'd back together by the 'macos' job
