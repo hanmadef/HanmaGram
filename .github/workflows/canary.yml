@@ -324,6 +324,33 @@ jobs:
           echo TBUILD=%GITHUB_WORKSPACE%\TBuild>>%GITHUB_ENV%
           echo LibrariesPath=%GITHUB_WORKSPACE%\TBuild\Libraries\win64>>%GITHUB_ENV%
 
+      - name: Free up disk space on runner.
+        shell: pwsh
+        run: |
+          Write-Host "Freeing disk space on runner..."
+          Get-PSDrive C, D
+          $toolPaths = @(
+              "C:\hostedtoolcache\windows\Go",
+              "C:\hostedtoolcache\windows\Ruby",
+              "C:\hostedtoolcache\windows\stack",
+              "C:\Program Files\Android",
+              "C:\Android",
+              "C:\Users\runneradmin\AppData\Local\Android",
+              "C:\Users\runneradmin\.dotnet",
+              "C:\Users\runneradmin\.cargo",
+              "C:\ProgramData\Chocolatey",
+              "C:\Strawberry",
+              "C:\SeleniumWebDrivers"
+          )
+          foreach ($p in $toolPaths) {
+              if (Test-Path $p) {
+                  Write-Host "Removing $p..."
+                  Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue
+              }
+          }
+          Get-ChildItem "C:\hostedtoolcache\windows" -Filter "Java*" -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Get-PSDrive C, D
+
       - name: Get repository name.
         shell: bash
         run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
@@ -575,6 +602,12 @@ jobs:
             ${{ env.LibrariesPath }}\[qQ]t[_-]*
             ${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
           key: ${{ steps.cache-qt.outputs.cache-primary-key }}
+
+      - name: Clean temp and check disk space.
+        shell: pwsh
+        run: |
+          Get-ChildItem "$env:LOCALAPPDATA\Temp" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Get-PSDrive C, D
 
       - name: Telegram Desktop build.
         run: |
